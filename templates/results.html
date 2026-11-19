@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+
+{% block title %}TPOT AutoML | Results{% endblock %}
+
+{% block content %}
+<section class="card-panel page-header-panel">
+    <div class="section-heading split-heading">
+        <div>
+            <span class="eyebrow">AutoML results</span>
+            <h1>AutoML Results</h1>
+        </div>
+        <a href="{{ url_for('home') }}" class="text-link">Upload another dataset</a>
+    </div>
+
+    <div class="summary-grid">
+        <div class="summary-card">
+            <span class="summary-label">Dataset</span>
+            <strong>{{ filename }}</strong>
+        </div>
+        <div class="summary-card">
+            <span class="summary-label">Target</span>
+            <strong>{{ target_column }}</strong>
+        </div>
+        <div class="summary-card">
+            <span class="summary-label">Problem type</span>
+            <strong>{{ problem_type|capitalize }}</strong>
+        </div>
+        <div class="summary-card">
+            <span class="summary-label">Mode</span>
+            <strong>{{ optimization_mode|capitalize }}</strong>
+        </div>
+    </div>
+</section>
+
+<section class="workflow-progress card-panel" aria-label="AutoML workflow completed">
+    <div class="workflow-progress-step complete">
+        <span>01</span>
+        <div><strong>Upload</strong><small>CSV received</small></div>
+    </div>
+    <div class="workflow-progress-step complete">
+        <span>02</span>
+        <div><strong>Profile</strong><small>{{ problem_type|capitalize }} task</small></div>
+    </div>
+    <div class="workflow-progress-step complete">
+        <span>03</span>
+        <div><strong>Configure</strong><small>{{ "Meta-TPOT" if use_meta_learning else "TPOT defaults" }}</small></div>
+    </div>
+    <div class="workflow-progress-step complete">
+        <span>04</span>
+        <div><strong>Search &amp; evaluate</strong><small>Held-out test scored</small></div>
+    </div>
+    <div class="workflow-progress-step complete">
+        <span>05</span>
+        <div><strong>Export</strong><small>Artifacts saved</small></div>
+    </div>
+</section>
+
+<section class="card-panel experiment-trace">
+    <div class="section-heading">
+        <div>
+            <span class="eyebrow">Experiment trace</span>
+            <h2>What ran for this dataset</h2>
+        </div>
+        <span class="trace-badge">Seed 42</span>
+    </div>
+    <div class="trace-grid">
+        <article class="trace-card">
+            <span class="trace-index">01 / SPLIT</span>
+            <strong>{{ training_rows }} train / {{ test_rows }} test</strong>
+            <small>{{ "Stratified" if problem_type == "classification" else "Random" }} 80:20 split; test rows are held out from pipeline search.</small>
+        </article>
+        <article class="trace-card">
+            <span class="trace-index">02 / META-FEATURES</span>
+            <strong>N={{ meta_features.N }} · F={{ meta_features.F }} · P={{ meta_features.P }}</strong>
+            <small>Descriptors computed from training rows only. {% if use_meta_learning %}Used for Meta-TPOT prediction.{% else %}Shown for transparency; Meta-TPOT prediction was not enabled.{% endif %}</small>
+        </article>
+        <article class="trace-card">
+            <span class="trace-index">03 / TPOT CONFIG</span>
+            {% if meta_prediction %}
+                <strong>Population {{ meta_prediction.population_size }} · {{ meta_prediction.generations }} generations</strong>
+                <small>Predicted by Meta-TPOT from {{ meta_prediction.training_dataset_count }} meta-training datasets.</small>
+            {% else %}
+                <strong>TPOT defaults</strong>
+                <small>Meta-TPOT configuration prediction was not enabled.</small>
+            {% endif %}
+        </article>
+        <article class="trace-card">
+            <span class="trace-index">04 / SEARCH BUDGET</span>
+            <strong>{{ optimization_mode|capitalize }} · {{ optimizer_settings.max_time_mins }} min</strong>
+            <small>{{ optimizer_settings.cv }}-fold CV · {{ optimizer_settings.max_eval_time_mins }} min per evaluation · early stop {{ optimizer_settings.early_stop }}</small>
+        </article>
+        <article class="trace-card">
+            <span class="trace-index">05 / PREPROCESS &amp; TEST</span>
+            <strong>{{ feature_count }} input features</strong>
+            <small>Preprocessor fitted on training predictors; final metrics below are from held-out test rows.</small>
+        </article>
+    </div>
+</section>
+
+{% if meta_prediction %}
+<section class="card-panel info-panel meta-result-panel">
+    <div class="section-heading">
+        <div>
+            <span class="eyebrow">Meta-learning prediction</span>
+            <h2>Meta-Learning Predicted TPOT Configuration</h2>
+        </div>
+    </div>
+    <dl class="kv-list">
+        <div><dt>Population size</dt><dd>{{ meta_prediction.population_size }}</dd></div>
+        <div><dt>Generations</dt><dd>{{ meta_prediction.generations }}</dd></div>
+        <div><dt>Meta-model training datasets</dt><dd>{{ meta_prediction.training_dataset_count }}</dd></div>
+        <div><dt>Raw predicted pair</dt><dd>{% if meta_prediction.raw_population_prediction is defined and meta_prediction.raw_generation_prediction is defined and meta_prediction.raw_population_prediction is not none and meta_prediction.raw_generation_prediction is not none %}{{ "%.2f"|format(meta_prediction.raw_population_prediction) }} / {{ "%.2f"|format(meta_prediction.raw_generation_prediction) }}{% else %}Not provided{% endif %}</dd></div>
+    </dl>
+</section>
+{% endif %}
+
+<section class="card-panel algorithm-panel">
+    <div class="section-heading">
+        <div>
+            <span class="eyebrow">Best algorithm</span>
+            <h2>{{ best_algorithm }}</h2>
+        </div>
+    </div>
+    <p class="algorithm-caption">Final estimator selected by TPOT</p>
+</section>
+
+{% if problem_type == "classification" %}
+<section class="metrics-grid">
+    <article class="metric-card success">
+        <span class="metric-label">Accuracy</span>
+        <strong>{{ "%.2f"|format(metrics.accuracy * 100) }}%</strong>
+    </article>
+    <article class="metric-card">
+        <span class="metric-label">Precision</span>
+        <strong>{{ "%.2f"|format(metrics.precision * 100) }}%</strong>
+    </article>
+    <article class="metric-card">
+        <span class="metric-label">Recall</span>
+        <strong>{{ "%.2f"|format(metrics.recall * 100) }}%</strong>
+    </article>
+    <article class="metric-card">
+        <span class="metric-label">F1 Score</span>
+        <strong>{{ "%.2f"|format(metrics.f1_score * 100) }}%</strong>
+    </article>
+</section>
+{% else %}
+<section class="metrics-grid">
+    <article class="metric-card success">
+        <span class="metric-label">MAE</span>
+        <strong>{{ "%.4f"|format(metrics.mae) }}</strong>
+    </article>
+    <article class="metric-card">
+        <span class="metric-label">MSE</span>
+        <strong>{{ "%.4f"|format(metrics.mse) }}</strong>
+    </article>
+    <article class="metric-card">
+        <span class="metric-label">RMSE</span>
+        <strong>{{ "%.4f"|format(metrics.rmse) }}</strong>
+    </article>
+    <article class="metric-card">
+        <span class="metric-label">R² Score</span>
+        <strong>{{ "%.4f"|format(metrics.r2_score) }}</strong>
+    </article>
+</section>
+{% endif %}
+
+<section class="detail-grid results-grid">
+    <article class="card-panel info-panel">
+        <div class="section-heading">
+            <div>
+                <span class="eyebrow">Results</span>
+                <h2>Best pipeline</h2>
+            </div>
+        </div>
+        <pre class="code-block"><code>{{ pipeline }}</code></pre>
+    </article>
+
+    <article class="card-panel info-panel">
+        <div class="section-heading">
+            <div>
+                <span class="eyebrow">Performance</span>
+                <h2>Model metrics</h2>
+            </div>
+        </div>
+
+        {% if problem_type == "classification" %}
+            <div class="matrix-wrap">
+                <table class="data-table matrix-table">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            {% for idx in range(metrics.confusion_matrix|length) %}
+                                <th>Pred {{ idx }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in metrics.confusion_matrix %}
+                            <tr>
+                                <th>Actual {{ loop.index0 }}</th>
+                                {% for value in row %}
+                                    <td>{{ value }}</td>
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <pre class="code-block report-block"><code>{{ metrics.classification_report }}</code></pre>
+        {% else %}
+            <div class="muted-box">Regression metrics reported above for the selected target.</div>
+        {% endif %}
+    </article>
+</section>
+
+<section class="card-panel export-panel">
+    <div class="section-heading">
+        <div>
+            <span class="eyebrow">Model export</span>
+            <h2>Pipeline saved successfully</h2>
+        </div>
+    </div>
+
+    <div class="export-path">{{ pipeline_path }}</div>
+    <div class="export-path secondary">Deployment artifact: {{ deployment_artifact_path }}</div>
+    {% if label_encoder_path %}
+        <div class="export-path secondary">Label encoder: {{ label_encoder_path }}</div>
+    {% endif %}
+</section>
+{% endblock %}

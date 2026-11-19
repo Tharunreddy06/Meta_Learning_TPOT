@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}TPOT AutoML | Target Selection{% endblock %}
+
+{% block content %}
+<section class="card-panel page-header-panel">
+    <div class="section-heading split-heading">
+        <div>
+            <span class="eyebrow">Dataset ready</span>
+            <h1>Target selection</h1>
+        </div>
+        <a href="{{ url_for('home') }}" class="text-link">Upload another dataset</a>
+    </div>
+
+    <div class="summary-grid">
+        <div class="summary-card">
+            <span class="summary-label">Dataset</span>
+            <strong>{{ dataset_info.filename }}</strong>
+        </div>
+        <div class="summary-card">
+            <span class="summary-label">Rows</span>
+            <strong>{{ dataset_info.rows }}</strong>
+        </div>
+        <div class="summary-card">
+            <span class="summary-label">Columns</span>
+            <strong>{{ dataset_info.columns }}</strong>
+        </div>
+    </div>
+</section>
+
+<section class="card-panel form-panel">
+    <div class="section-heading">
+        <div>
+            <span class="eyebrow">Select target</span>
+            <h2>Choose the column to predict</h2>
+        </div>
+    </div>
+
+    <form action="/analyze" method="POST" class="target-form">
+        <input type="hidden" name="file_path" value="{{ file_path }}">
+
+        <div class="field-group">
+            <label for="target_column">Target column</label>
+            <select id="target_column" name="target_column" required>
+                <option value="">-- Select Target --</option>
+                {% for column in dataset_info.column_names %}
+                    <option value="{{ column }}">{{ column }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <p class="field-hint">This target variable determines whether the problem is classified as classification or regression.</p>
+
+        <button type="submit" class="btn btn-primary">Analyse Dataset</button>
+    </form>
+</section>
+{% endblock %}

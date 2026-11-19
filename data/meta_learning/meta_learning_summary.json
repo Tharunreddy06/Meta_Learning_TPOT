@@ -1,0 +1,17 @@
+{
+  "held_out_dataset_count": 4,
+  "population_prediction_mae": 2.5,
+  "generation_prediction_mae": 0.75,
+  "exact_configuration_match_rate": 0.25,
+  "success_rate_default": 1.0,
+  "success_rate_manual": 1.0,
+  "success_rate_meta": 1.0,
+  "meta_minus_default_accuracy_mean": -0.05361899746329367,
+  "meta_minus_default_runtime_seconds_mean": -44.43319167499931,
+  "meta_runtime_reduction_percent_vs_default_mean": 63.56074267385552,
+  "paired_success_count_default_vs_meta": 4,
+  "meta_minus_manual_accuracy_mean": 0.03642490463628946,
+  "meta_minus_manual_runtime_seconds_mean": 18.969644275000064,
+  "meta_runtime_reduction_percent_vs_manual_mean": -249.82075824745436,
+  "paired_success_count_manual_vs_meta": 4
+}

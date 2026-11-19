@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="TPOT AutoML - Automated Machine Learning Pipeline Generator">
+    <title>{% block title %}TPOT AutoML{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+    <div class="page-shell">
+        <header class="topbar">
+            <div class="container nav-wrapper">
+                <a href="{{ url_for('home') }}" class="brand" aria-label="TPOT AutoML home">
+                    <span class="brand-mark">T</span>
+                    <span>
+                        <strong>TPOT AutoML</strong>
+                        <small>Automated Machine Learning Pipeline Generator</small>
+                    </span>
+                </a>
+
+                <nav class="main-nav" aria-label="Main navigation">
+                    <a href="{{ url_for('home') }}" class="nav-link active">Home</a>
+                    <a href="{{ url_for('home') }}#workflow" class="nav-link">Workflow</a>
+                    <a href="{{ url_for('home') }}#about" class="nav-link">About</a>
+                </nav>
+            </div>
+        </header>
+
+        <main class="container page-content">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="flash-stack" aria-live="polite">
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ 'warning' if category == 'warning' else 'info' }}">
+                                <strong>{{ 'Warning' if category == 'warning' else 'Notice' }}:</strong>
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
+        </main>
+
+        <footer class="site-footer">
+            <div class="container footer-inner">
+                <div>
+                    <strong>TPOT AutoML</strong>
+                    <p>Automated pipeline discovery for structured datasets.</p>
+                </div>
+                <div class="footer-meta">
+                    <span>Academic project</span>
+                    <span>Research workflow</span>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+
+</html>

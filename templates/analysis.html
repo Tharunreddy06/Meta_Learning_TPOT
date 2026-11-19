@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+
+{% block title %}TPOT AutoML | Analysis{% endblock %}
+
+{% block content %}
+<section class="card-panel page-header-panel">
+    <div class="section-heading split-heading">
+        <div>
+            <span class="eyebrow">Dataset analysis</span>
+            <h1>Dataset Analysis</h1>
+        </div>
+        <a href="{{ url_for('home') }}" class="text-link">Upload another dataset</a>
+    </div>
+
+    <div class="summary-grid">
+        <div class="summary-card">
+            <span class="summary-label">Dataset</span>
+            <strong>{{ filename }}</strong>
+        </div>
+        <div class="summary-card">
+            <span class="summary-label">Rows</span>
+            <strong>{{ result.basic_info.rows }}</strong>
+        </div>
+        <div class="summary-card">
+            <span class="summary-label">Columns</span>
+            <strong>{{ result.basic_info.columns }}</strong>
+        </div>
+        <div class="summary-card">
+            <span class="summary-label">Problem Type</span>
+            <strong>{{ result.problem_type|capitalize }}</strong>
+        </div>
+    </div>
+</section>
+
+<section class="workflow-progress card-panel" aria-label="AutoML workflow progress">
+    <div class="workflow-progress-step complete">
+        <span>01</span>
+        <div><strong>Upload</strong><small>CSV received</small></div>
+    </div>
+    <div class="workflow-progress-step active" aria-current="step">
+        <span>02</span>
+        <div><strong>Profile</strong><small>Dataset inspected</small></div>
+    </div>
+    <div class="workflow-progress-step">
+        <span>03</span>
+        <div><strong>Configure</strong><small>Choose search mode</small></div>
+    </div>
+    <div class="workflow-progress-step">
+        <span>04</span>
+        <div><strong>Search &amp; evaluate</strong><small>Train, then test</small></div>
+    </div>
+    <div class="workflow-progress-step">
+        <span>05</span>
+        <div><strong>Export</strong><small>Save a reusable model</small></div>
+    </div>
+</section>
+
+<section class="metrics-grid">
+    <article class="metric-card success">
+        <span class="metric-label">Numerical Features</span>
+        <strong>{{ result.basic_info.numerical_columns|length }}</strong>
+    </article>
+    <article class="metric-card">
+        <span class="metric-label">Categorical Features</span>
+        <strong>{{ result.basic_info.categorical_columns|length }}</strong>
+    </article>
+    <article class="metric-card warning">
+        <span class="metric-label">Missing Values</span>
+        <strong>{{ result.basic_info.missing_values|length }}</strong>
+    </article>
+    <article class="metric-card">
+        <span class="metric-label">Duplicate Rows</span>
+        <strong>{{ result.basic_info.duplicate_rows }}</strong>
+    </article>
+</section>
+
+<section class="detail-grid">
+    <article class="card-panel info-panel">
+        <div class="section-heading">
+            <div>
+                <span class="eyebrow">Features</span>
+                <h2>Dataset features</h2>
+            </div>
+        </div>
+
+        <div class="feature-columns">
+            <div>
+                <h3>Numerical</h3>
+                {% if result.basic_info.numerical_columns %}
+                    <ul class="feature-list">
+                        {% for column in result.basic_info.numerical_columns %}
+                            <li>{{ column }}</li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="muted">No numerical features detected.</p>
+                {% endif %}
+            </div>
+
+            <div>
+                <h3>Categorical</h3>
+                {% if result.basic_info.categorical_columns %}
+                    <ul class="feature-list">
+                        {% for column in result.basic_info.categorical_columns %}
+                            <li>{{ column }}</li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="muted">No categorical features detected.</p>
+                {% endif %}
+            </div>
+        </div>
+    </article>
+
+    <article class="card-panel info-panel">
+        <div class="section-heading">
+            <div>
+                <span class="eyebrow">Target</span>
+                <h2>Target information</h2>
+            </div>
+        </div>
+
+        <dl class="kv-list">
+            <div><dt>Target column</dt><dd>{{ target_column }}</dd></div>
+            <div><dt>Data type</dt><dd>{{ result.target.dtype }}</dd></div>
+            <div><dt>Unique values</dt><dd>{{ result.target.unique_values }}</dd></div>
+            <div><dt>Missing values</dt><dd>{{ result.target.missing_values }}</dd></div>
+        </dl>
+
+        {% if result.target.class_distribution %}
+            <div class="class-distribution">
+                <h3>Class distribution</h3>
+                {% for label, count in result.target.class_distribution.items() %}
+                    <div class="distribution-row">
+                        <span>{{ label }}</span>
+                        <strong>{{ count }}</strong>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </article>
+</section>
+
+<section class="card-panel optimization-panel">
+    <div class="section-heading">
+        <div>
+            <span class="eyebrow">AutoML optimization</span>
+            <h2>Configure the paper workflow</h2>
+        </div>
+    </div>
+
+    <p class="lead">
+        The dataset is split before training. Preprocessing is fitted on training rows only; the held-out test rows are reserved for the final evaluation.
+    </p>
+
+    <form action="/train" method="POST" class="optimization-form" id="trainingForm">
+        <input type="hidden" name="file_path" value="{{ file_path }}">
+        <input type="hidden" name="target_column" value="{{ target_column }}">
+
+        <div class="mode-grid" role="radiogroup" aria-label="Optimization mode">
+            <label class="mode-card selected">
+                <input type="radio" name="optimization_mode" value="quick" checked>
+                <span class="mode-title">Quick</span>
+                <small>Fast experimentation</small>
+                <em>Lower search budget</em>
+            </label>
+
+            <label class="mode-card">
+                <input type="radio" name="optimization_mode" value="balanced">
+                <span class="mode-title">Balanced</span>
+                <small>Recommended</small>
+                <em>Moderate optimization</em>
+            </label>
+
+            <label class="mode-card">
+                <input type="radio" name="optimization_mode" value="thorough">
+                <span class="mode-title">Thorough</span>
+                <small>Deeper search</small>
+                <em>Higher computational cost</em>
+            </label>
+        </div>
+
+        <label class="meta-learning-option">
+            <input type="checkbox" name="use_meta_learning" value="true">
+            <span>
+                <strong>Use Meta-TPOT configuration</strong>
+                <small>After the 80:20 split, use training-only [N, F, P] features to predict TPOT population size and generations before search.</small>
+            </span>
+        </label>
+
+        <div class="workflow-note">
+            <strong>What happens next</strong>
+            <span>Stratified 80:20 split (seed 42) for classification → fit preprocessing on train → run TPOT → score once on the held-out test set → export the preprocessor and model together.</span>
+        </div>
+
+        <div class="inline-note">Choose a search budget. The meta-model controls population and generations; this mode controls runtime, evaluation timeout, CV folds, and early stopping.</div>
+
+        <button type="submit" class="btn btn-primary btn-lg" id="trainButton">
+            Run AutoML
+        </button>
+    </form>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/training.js') }}"></script>
+{% endblock %}

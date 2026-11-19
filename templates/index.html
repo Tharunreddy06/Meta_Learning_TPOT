@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}TPOT AutoML | Home{% endblock %}
+
+{% block content %}
+<section class="hero card-panel">
+    <div class="hero-copy">
+        <span class="eyebrow">TPOT AutoML</span>
+        <h1>Automated Machine Learning Pipeline Generator</h1>
+        <p>
+            Upload a CSV dataset and automatically analyse, optimise and evaluate a machine learning pipeline.
+        </p>
+
+        <div class="hero-actions">
+            <a href="#upload" class="btn btn-primary">Upload Dataset</a>
+            <a href="#workflow" class="btn btn-secondary">View Workflow</a>
+        </div>
+    </div>
+
+    <div class="hero-metrics" aria-label="Project capabilities">
+        <div class="mini-stat">
+            <span class="stat-label">Dataset</span>
+            <strong>CSV Upload</strong>
+        </div>
+        <div class="mini-stat">
+            <span class="stat-label">Analysis</span>
+            <strong>Auto Detection</strong>
+        </div>
+        <div class="mini-stat">
+            <span class="stat-label">Optimization</span>
+            <strong>TPOT Search</strong>
+        </div>
+        <div class="mini-stat">
+            <span class="stat-label">Output</span>
+            <strong>Pipeline Export</strong>
+        </div>
+    </div>
+</section>
+
+<section id="upload" class="card-panel upload-panel">
+    <div class="section-heading">
+        <div>
+            <span class="eyebrow">Dataset upload</span>
+            <h2>Prepare your dataset</h2>
+        </div>
+    </div>
+
+    <form action="/upload" method="POST" enctype="multipart/form-data" class="upload-form" id="uploadForm">
+        <label class="file-dropzone" for="dataset" id="dropzone">
+            <input type="file" id="dataset" name="dataset" accept=".csv" required>
+            <div class="dropzone-content">
+                <div class="dropzone-icon">CSV</div>
+                <div>
+                    <strong>Drop your CSV file here</strong>
+                    <p>or click to browse</p>
+                </div>
+            </div>
+            <span class="file-name" id="fileName">No file selected</span>
+        </label>
+
+        <div class="form-meta">
+            <span>CSV files only</span>
+            <span>Max size depends on your environment</span>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block">Upload Dataset</button>
+    </form>
+</section>
+
+<section id="workflow" class="card-panel workflow-panel">
+    <div class="section-heading">
+        <div>
+            <span class="eyebrow">Workflow</span>
+            <h2>From dataset to deployable pipeline</h2>
+        </div>
+    </div>
+
+    <div class="step-grid">
+        <article class="step-card">
+            <span class="step-number">01</span>
+            <h3>Dataset</h3>
+            <p>Upload a structured CSV dataset and select the target column you want to predict.</p>
+        </article>
+        <article class="step-card">
+            <span class="step-number">02</span>
+            <h3>Analysis</h3>
+            <p>Inspect feature types, target characteristics, missing values and dataset quality.</p>
+        </article>
+        <article class="step-card">
+            <span class="step-number">03</span>
+            <h3>Optimization</h3>
+            <p>Run automated TPOT model selection across candidate machine learning pipelines.</p>
+        </article>
+        <article class="step-card">
+            <span class="step-number">04</span>
+            <h3>Evaluation</h3>
+            <p>Review the best-performing pipeline and assess model performance with metrics.</p>
+        </article>
+    </div>
+</section>
+
+<section id="about" class="card-panel about-panel">
+    <div class="section-heading">
+        <div>
+            <span class="eyebrow">About</span>
+            <h2>Academic AutoML workflow</h2>
+        </div>
+    </div>
+
+    <p>
+        TPOT AutoML is a research-focused application for automating the machine learning pipeline lifecycle.
+        It helps users upload a dataset, inspect its structure, identify a target variable, optimise a pipeline,
+        and review the best-performing configuration found during the search.
+    </p>
+</section>
+{% endblock %}
